@@ -1,0 +1,34 @@
+RAG Retrieval Notes
+
+Retrieval is the online half of a RAG system. When a user asks a question, retrieval finds the few chunks most likely to contain the answer, and only those chunks are given to the language model. If retrieval misses the right chunk, even the best model cannot answer correctly.
+
+Query embedding
+The question is embedded with exactly the same model used during ingestion, text-embedding-3-small with 1536 dimensions. Vectors from different models live in different spaces and cannot be compared, which is why the vector store refuses a collection built with another model.
+
+Semantic search
+Semantic search compares the question vector with every chunk vector using cosine similarity. A score of 1.0 means the same meaning. With text-embedding-3-small a strong match usually scores between 0.5 and 0.7, and unrelated text usually scores below 0.3. Semantic search understands paraphrases, so "time off" can find "annual leave".
+
+Keyword search with BM25
+BM25 scores chunks by the words they share with the question. Rare words weigh more than common words, and repeated words count less each time. The usual parameters are k1 = 1.5 and b = 0.75. Keyword search is strong where embeddings are weak: product codes, error numbers, names and exact phrases.
+
+Hybrid search and Reciprocal Rank Fusion
+Hybrid search runs semantic search and keyword search on the same chunks and merges the two ranked lists with Reciprocal Rank Fusion (RRF). Each chunk receives 1 / (k + rank) from every list it appears in, with k = 60. RRF only uses positions, never raw scores, so the very different scales of cosine similarity and BM25 never have to be compared. A chunk found by both searches rises to the top.
+
+Metadata filters
+Metadata filters narrow the search before any scoring happens. Typical filters are file name, file type, page number, section heading and whether the chunk contains a table. Filtering first is faster and avoids answers from the wrong document.
+
+Relevance thresholds
+Search always returns something, even for a question the documents cannot answer, so every result must pass a relevance check. A fixed threshold keeps chunks with cosine similarity of at least 0.30 or a BM25 score of at least 4.0. A relative threshold also drops any chunk scoring below 0.6 times the best similarity for that question. Strong keyword matches are exempt from the relative threshold.
+
+Top-k selection
+After the relevance check, only the best k chunks are sent to the language model. The default is k = 3. A larger k gives the model more context but also more noise, more cost and a higher chance that it mixes up facts.
+
+Re-ranking
+A re-ranker is an optional second stage. A cross-encoder reads the question and each candidate chunk together and scores them again, which is more accurate than comparing vectors but too slow to run on the whole collection. A common pattern is to retrieve 20 candidates and re-rank them down to 3.
+
+Common retrieval failures
+- The answer is split across two chunks: increase the overlap or use structure-aware chunking.
+- The right chunk ranks fourth: increase k or add a re-ranker.
+- An exact code is not found: make sure keyword search is part of the hybrid search.
+- Unrelated chunks are returned: raise the similarity threshold.
+- Correct answers are refused: lower the similarity threshold.

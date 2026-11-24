@@ -1,0 +1,237 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2060" viewBox="0 0 1600 2060" role="img" aria-labelledby="title desc">
+  <title id="title">RAG retrieval and answer pipeline</title>
+  <desc id="desc">How python ask.py answers a question: start-up checks, question preparation, hybrid search (semantic and BM25 keyword search on metadata-filtered chunks, merged with reciprocal rank fusion), relevance cut-offs and top 3 selection, cited answer generation, citation checks, the no-information paths, error handling, logging and evaluation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6f8fc"/><stop offset="1" stop-color="#eaf0f8"/></linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#142b4a"/><stop offset="1" stop-color="#245b83"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#14304d" flood-opacity=".12"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#55718c"/></marker>
+    <marker id="red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c25a58"/></marker>
+    <marker id="amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b7791f"/></marker>
+    <marker id="slate" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b5fa8"/></marker>
+    <style>
+      text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#18324d}
+      .title{font-size:38px;font-weight:750;fill:#fff}.subtitle{font-size:17px;fill:#dce8f4}
+      .node{fill:#fff;stroke:#d5e0eb;stroke-width:2;filter:url(#shadow)}
+      .inner{fill:#f7fafd;stroke:#d5e0eb;stroke-width:1.5}
+      .stage{font-size:13px;font-weight:700;letter-spacing:1.5px;fill:#39739a}
+      .name{font-size:22px;font-weight:700}.sub{font-size:17px;font-weight:700}
+      .body{font-size:15px;fill:#52677b}.bodys{font-size:14px;fill:#52677b}
+      .file{font-size:13px;fill:#7a8ea2;font-family:ui-monospace,Menlo,monospace}
+      .mono{font-size:14px;fill:#18324d;font-family:ui-monospace,Menlo,monospace}
+      .small{font-size:14px;fill:#62768a}
+      .panelhead{font-size:19px;font-weight:750}.entry{font-size:14px;fill:#5b4a4a}.entryb{font-size:14px;font-weight:700}
+      .line{fill:none;stroke:#55718c;stroke-width:3;marker-end:url(#arrow)}
+      .redline{fill:none;stroke:#c25a58;stroke-width:2.5;marker-end:url(#red)}
+      .amberline{fill:none;stroke:#b7791f;stroke-width:2.5;marker-end:url(#amber)}
+      .slateline{fill:none;stroke:#6b5fa8;stroke-width:2.5;marker-end:url(#slate)}
+      .pill{font-size:14px;font-weight:700;fill:#fff}
+      .sidehead{font-size:18px;font-weight:700}.sidebody{font-size:15px;fill:#52677b}
+    </style>
+  </defs>
+
+  <rect width="1600" height="2060" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1600" height="132" fill="url(#head)"/>
+  <text x="60" y="64" class="title">RAG · Retrieval &amp; Answer</text>
+  <text x="62" y="100" class="subtitle">python ask.py "question" · hybrid search on filtered chunks · top 3 sources · answer with [n] citations, or "no information"</text>
+
+  <!-- ================= START-UP ================= -->
+  <rect x="470" y="160" width="660" height="128" rx="18" class="node"/>
+  <text x="500" y="192" class="stage">START-UP · RAGPipeline()</text>
+  <text x="500" y="222" class="name">Open the knowledge base</text>
+  <text x="500" y="248" class="body">ChromaDB collection built by the same embedding model (1536 dims)</text>
+  <text x="500" y="270" class="body">Build the BM25 keyword index from every stored chunk</text>
+  <path d="M1130 224 H1236" class="redline"/>
+  <rect x="1240" y="166" width="320" height="116" rx="14" fill="#fff6f4" stroke="#e5b9b3" stroke-width="2"/>
+  <text x="1400" y="196" text-anchor="middle" class="panelhead" style="fill:#9e4645">STOP · exit code 2</text>
+  <text x="1260" y="222" class="entry">Database empty → run ingest.py first</text>
+  <text x="1260" y="244" class="entry">Collection made by another model</text>
+  <text x="1260" y="266" class="entry">OPENAI_API_KEY missing</text>
+
+  <!-- ================= INPUT ================= -->
+  <path d="M800 288 V318" class="line"/>
+  <rect x="470" y="326" width="660" height="104" rx="18" class="node"/>
+  <text x="800" y="356" text-anchor="middle" class="stage">INPUT</text>
+  <text x="800" y="386" text-anchor="middle" class="name">Question + optional metadata filters</text>
+  <text x="800" y="412" text-anchor="middle" class="file">--file  --type  --section  --page  --tables-only  --exclude-flagged</text>
+  <path d="M800 430 V462" class="line"/>
+
+  <!-- ================= STEP 1 ================= -->
+  <rect x="470" y="470" width="660" height="124" rx="18" class="node"/>
+  <circle cx="516" cy="532" r="24" fill="#39739a"/><text x="516" y="537" text-anchor="middle" class="pill">1</text>
+  <text x="556" y="502" class="stage">PREPARE QUESTION</text><text x="556" y="530" class="name">Vector + keywords</text>
+  <text x="556" y="554" class="body">Vector: text-embedding-3-small, 1536 dims (same as ingestion)</text>
+  <text x="556" y="576" class="body">Keywords: stopwords removed ("how", "the"), plurals fixed (days → day)</text>
+  <path d="M1130 532 H1236" class="amberline"/>
+  <rect x="1240" y="480" width="320" height="104" rx="14" fill="#fff8ec" stroke="#ecd3a4" stroke-width="2"/>
+  <text x="1400" y="510" text-anchor="middle" class="entryb" style="fill:#8a5a12">Question error · message shown</text>
+  <text x="1260" y="536" class="entry">Shorter than 3 or longer than</text>
+  <text x="1260" y="558" class="entry">2000 characters, or embedding failed</text>
+  <text x="1260" y="576" class="small">step1_prepare_question.py</text>
+
+  <!-- ================= STEP 2 (container) ================= -->
+  <path d="M800 594 V626" class="line"/>
+  <rect x="470" y="634" width="660" height="446" rx="18" class="node"/>
+  <circle cx="516" cy="684" r="24" fill="#39739a"/><text x="516" y="689" text-anchor="middle" class="pill">2</text>
+  <text x="556" y="666" class="stage">HYBRID SEARCH</text><text x="556" y="694" class="name">Two searches on the filtered chunks</text>
+  <text x="556" y="716" class="file">step2_hybrid_search.py</text>
+
+  <rect x="496" y="732" width="608" height="62" rx="12" class="inner"/>
+  <text x="516" y="756" class="sub">Metadata filter first</text>
+  <text x="516" y="780" class="bodys">ChromaDB where: file · type · page · has_table  +  section text · quality flags</text>
+  <path d="M640 794 V820" class="line"/>
+  <path d="M960 794 V820" class="line"/>
+
+  <rect x="496" y="828" width="290" height="132" rx="12" class="inner"/>
+  <text x="516" y="856" class="sub">Semantic search</text>
+  <text x="516" y="880" class="bodys">ChromaDB · cosine similarity</text>
+  <text x="516" y="902" class="bodys">finds the same MEANING</text>
+  <text x="516" y="924" class="bodys">"time off" → "annual leave"</text>
+  <text x="516" y="946" class="small">top 20 by similarity</text>
+
+  <rect x="814" y="828" width="290" height="132" rx="12" class="inner"/>
+  <text x="834" y="856" class="sub">Keyword search</text>
+  <text x="834" y="880" class="bodys">BM25 over the chunk text</text>
+  <text x="834" y="902" class="bodys">finds the same WORDS</text>
+  <text x="834" y="924" class="bodys">"4400", "Contoso", "AES-256"</text>
+  <text x="834" y="946" class="small">top 20 by BM25 score</text>
+
+  <path d="M640 960 V986" class="line"/>
+  <path d="M960 960 V986" class="line"/>
+  <rect x="496" y="994" width="608" height="70" rx="12" class="inner"/>
+  <text x="516" y="1018" class="sub">Merge · Reciprocal Rank Fusion</text>
+  <text x="516" y="1046" class="mono">score = 1/(60 + semantic rank) + 1/(60 + keyword rank)</text>
+
+  <!-- ================= STEP 3 ================= -->
+  <path d="M800 1080 V1112" class="line"/>
+  <rect x="470" y="1120" width="660" height="196" rx="18" class="node"/>
+  <circle cx="516" cy="1170" r="24" fill="#39739a"/><text x="516" y="1175" text-anchor="middle" class="pill">3</text>
+  <text x="556" y="1152" class="stage">SELECT SOURCES</text><text x="556" y="1180" class="name">Relevance check · keep the top 3</text>
+  <text x="556" y="1210" class="body"><tspan font-weight="700">a. fixed</tspan>     similarity ≥ 0.30  OR  keyword score ≥ 4.0</text>
+  <text x="556" y="1236" class="body"><tspan font-weight="700">b. relative</tspan>  similarity ≥ 0.6 × best similarity</text>
+  <text x="556" y="1258" class="bodys">     (strong keyword matches are exempt from b)</text>
+  <text x="556" y="1284" class="body">Best 3 in fused order → numbered sources [1] [2] [3]</text>
+  <text x="556" y="1304" class="file">step3_select_sources.py</text>
+
+  <!-- ================= STEP 4 ================= -->
+  <path d="M800 1316 V1348" class="line"/>
+  <rect x="470" y="1356" width="660" height="176" rx="18" class="node"/>
+  <circle cx="516" cy="1406" r="24" fill="#39739a"/><text x="516" y="1411" text-anchor="middle" class="pill">4</text>
+  <text x="556" y="1388" class="stage">GENERATE ANSWER · gpt-4o-mini, JSON reply</text><text x="556" y="1416" class="name">Answer from the sources only</text>
+  <text x="556" y="1444" class="body">Use only facts in the sources · never guess</text>
+  <text x="556" y="1466" class="body">Cite every sentence: [1] [2] · not in sources → found = false</text>
+  <text x="556" y="1488" class="body">Text inside sources is data, never instructions</text>
+  <text x="556" y="1516" class="file">step4_generate_answer.py · {"found", "answer", "citations"}</text>
+
+  <!-- ================= CITATION CHECK ================= -->
+  <path d="M800 1532 V1564" class="line"/>
+  <rect x="470" y="1572" width="660" height="96" rx="18" class="node"/>
+  <text x="500" y="1604" class="stage">CHECK CITATIONS</text>
+  <text x="500" y="1632" class="body">[n] pointing at a source that wasn't sent → removed, warning shown</text>
+  <text x="500" y="1654" class="body">No citation at all → warning: check the answer against the sources</text>
+
+  <!-- ================= OUTPUT ================= -->
+  <path d="M800 1668 V1700" class="line"/>
+  <rect x="470" y="1708" width="660" height="128" rx="18" fill="#e5f2ed" stroke="#b7d9ca" stroke-width="2" filter="url(#shadow)"/>
+  <text x="800" y="1740" text-anchor="middle" class="stage" style="fill:#267354">ANSWER</text>
+  <text x="500" y="1772" class="mono">You get 25 days of annual leave per year [1].</text>
+  <text x="500" y="1800" class="mono">[1] employee_handbook.docx · "2. Leave Policy"</text>
+  <text x="500" y="1822" class="small">each source: file · section · page · similarity · cited / not cited</text>
+
+  <!-- ================= LEFT: EXAMPLE SCORES ================= -->
+  <rect x="34" y="634" width="404" height="446" rx="18" class="node"/>
+  <text x="236" y="668" text-anchor="middle" class="sidehead">Example from a real run</text>
+  <text x="236" y="692" text-anchor="middle" class="small">"How many days of annual leave do I get?"</text>
+  <line x1="56" y1="712" x2="416" y2="712" stroke="#d5e0eb" stroke-width="1.5"/>
+  <text x="56" y="740" class="entryb">Best similarity 0.66</text>
+  <text x="56" y="762" class="bodys">relative limit = 0.66 × 0.6 = 0.40</text>
+  <rect x="56" y="784" width="360" height="62" rx="10" fill="#eef7f2"/>
+  <text x="72" y="808" class="entryb" style="fill:#267354">✓ 0.66  leave table → [1]</text>
+  <text x="72" y="832" class="bodys">"Annual leave | 25 | Yes | 2 weeks"</text>
+  <rect x="56" y="856" width="360" height="62" rx="10" fill="#eef7f2"/>
+  <text x="72" y="880" class="entryb" style="fill:#267354">✓ 0.55  leave policy text → [2]</text>
+  <text x="72" y="904" class="bodys">carry-over rules, 2 weeks' notice</text>
+  <rect x="56" y="928" width="360" height="62" rx="10" fill="#fff6f4"/>
+  <text x="72" y="952" class="entryb" style="fill:#9e4645">✗ 0.30  "Remote Work"</text>
+  <text x="72" y="976" class="bodys">passes a (0.30) but fails b (&lt; 0.40)</text>
+  <text x="56" y="1018" class="bodys">Only relevant sources reach the LLM;</text>
+  <text x="56" y="1040" class="bodys">it answered "25 days [1]" and left</text>
+  <text x="56" y="1062" class="bodys">[2] uncited because it wasn't needed.</text>
+
+  <!-- ================= LEFT: NO INFORMATION ================= -->
+  <rect x="34" y="1120" width="404" height="548" rx="18" fill="#f3f1fb" stroke="#cfc8ec" stroke-width="2"/>
+  <text x="236" y="1154" text-anchor="middle" class="panelhead" style="fill:#4f438f">NO INFORMATION</text>
+  <text x="236" y="1178" text-anchor="middle" class="small">nothing in the documents answers it</text>
+
+  <path d="M470 1236 H442" class="slateline"/>
+  <text x="56" y="1220" class="entryb" style="fill:#4f438f">3 · no chunk passed the</text>
+  <text x="56" y="1240" class="entry" style="fill:#3e3768">relevance check, or the filters</text>
+  <text x="56" y="1260" class="entry" style="fill:#3e3768">matched nothing</text>
+  <text x="56" y="1282" class="small">→ the LLM is NOT called</text>
+
+  <path d="M470 1466 H442" class="slateline"/>
+  <text x="56" y="1446" class="entryb" style="fill:#4f438f">4 · the LLM replied found = false</text>
+  <text x="56" y="1466" class="entry" style="fill:#3e3768">the sources don't contain</text>
+  <text x="56" y="1486" class="entry" style="fill:#3e3768">the answer</text>
+
+  <rect x="56" y="1534" width="360" height="110" rx="12" fill="#ffffff" stroke="#cfc8ec" stroke-width="1.5"/>
+  <text x="72" y="1562" class="bodys" style="fill:#3e3768">Reply shown to the user:</text>
+  <text x="72" y="1590" class="entryb" style="fill:#4f438f">"I couldn't find any information</text>
+  <text x="72" y="1612" class="entryb" style="fill:#4f438f">related to this topic in the</text>
+  <text x="72" y="1634" class="entryb" style="fill:#4f438f">documents."</text>
+
+  <!-- ================= RIGHT: LLM ERRORS ================= -->
+  <path d="M1130 1416 H1236" class="amberline"/>
+  <rect x="1240" y="1356" width="320" height="236" rx="18" fill="#fff8ec" stroke="#ecd3a4" stroke-width="2"/>
+  <text x="1400" y="1388" text-anchor="middle" class="panelhead" style="fill:#8a5a12">LLM problem</text>
+  <text x="1260" y="1418" class="entryb" style="fill:#8a5a12">Rate limit · timeout · 5xx</text>
+  <text x="1260" y="1440" class="entry">retried up to 5× with growing waits</text>
+  <text x="1260" y="1474" class="entryb" style="fill:#8a5a12">Still failing · key rejected ·</text>
+  <text x="1260" y="1496" class="entryb" style="fill:#8a5a12">model refused · reply not JSON</text>
+  <text x="1260" y="1520" class="entry">→ "Could not answer", plus the</text>
+  <text x="1260" y="1542" class="entry">most relevant passages instead</text>
+  <text x="1260" y="1574" class="small">no crash, nothing invented</text>
+
+  <!-- ================= RIGHT: FILTER NOTE ================= -->
+  <rect x="1240" y="634" width="320" height="196" rx="18" class="node"/>
+  <text x="1400" y="666" text-anchor="middle" class="sidehead">Why two searches?</text>
+  <text x="1260" y="696" class="bodys">Embeddings blur exact terms:</text>
+  <text x="1260" y="718" class="bodys">codes, numbers, names.</text>
+  <text x="1260" y="748" class="bodys">BM25 misses paraphrases.</text>
+  <text x="1260" y="778" class="bodys">RRF uses only positions, so the</text>
+  <text x="1260" y="800" class="bodys">two score scales never clash; a</text>
+  <text x="1260" y="822" class="bodys">chunk found by both ranks highest.</text>
+
+  <rect x="1240" y="860" width="320" height="220" rx="18" class="node"/>
+  <text x="1400" y="892" text-anchor="middle" class="sidehead">Scores kept per chunk</text>
+  <text x="1260" y="922" class="bodys">similarity  cosine, 0-1</text>
+  <text x="1260" y="946" class="bodys">keyword     BM25, 0 = no shared word</text>
+  <text x="1260" y="970" class="bodys">ranks       semantic #, keyword #</text>
+  <text x="1260" y="994" class="bodys">fused       RRF score (sort order)</text>
+  <text x="1260" y="1024" class="small">see them with</text>
+  <text x="1260" y="1046" class="mono">ask.py "..." --show-search</text>
+
+  <!-- ================= BOTTOM ================= -->
+  <path d="M800 1836 V1868" class="line"/>
+  <rect x="34" y="1876" width="490" height="120" rx="16" class="node"/>
+  <text x="279" y="1910" text-anchor="middle" class="sidehead">Logged</text>
+  <text x="279" y="1940" text-anchor="middle" class="sidebody">data/reports/questions.jsonl</text>
+  <text x="279" y="1964" text-anchor="middle" class="sidebody">question · answer · sources · filters · time</text>
+
+  <rect x="555" y="1876" width="490" height="120" rx="16" class="node"/>
+  <text x="800" y="1910" text-anchor="middle" class="sidehead">Measured by evaluate.py</text>
+  <text x="800" y="1940" text-anchor="middle" class="sidebody">hit rate@3 · MRR · precision · context recall</text>
+  <text x="800" y="1964" text-anchor="middle" class="sidebody">fact recall · citations · refusal accuracy</text>
+
+  <rect x="1076" y="1876" width="484" height="120" rx="16" class="node"/>
+  <text x="1318" y="1910" text-anchor="middle" class="sidehead">Tune in .env</text>
+  <text x="1318" y="1940" text-anchor="middle" class="sidebody">RAG_TOP_K · RAG_MIN_SIMILARITY</text>
+  <text x="1318" y="1964" text-anchor="middle" class="sidebody">RAG_MIN_RELATIVE_SCORE · RAG_LLM_MODEL</text>
+
+  <!-- Legend -->
+  <rect x="34" y="2010" width="1526" height="40" rx="12" fill="#ffffff" stroke="#d5e0eb" stroke-width="1.5"/>
+  <line x1="66" y1="2030" x2="116" y2="2030" class="line"/><text x="128" y="2035" class="small">normal flow</text>
+  <line x1="300" y1="2030" x2="350" y2="2030" class="slateline"/><text x="362" y="2035" class="small">no information (expected outcome)</text>
+  <line x1="680" y1="2030" x2="730" y2="2030" class="amberline"/><text x="742" y="2035" class="small">problem, handled without crashing</text>
+  <line x1="1060" y1="2030" x2="1110" y2="2030" class="redline"/><text x="1122" y="2035" class="small">cannot start</text>
+</svg>

@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Secrets - API keys, GitHub client secret, session secret
+.env
+
+# Generated: vector database, reports, logs, quarantine
+data/
+
+# Personal notes
+ERRORS_REFERENCE.md
+
+# macOS
+.DS_Store
+
+# Your own documents stay local. Only the generated sample knowledge base
+# (scripts/make_rag_docs.py) is in the repository.
+docs/*
+!docs/rag_ingestion_guide.pdf
+!docs/rag_retrieval_notes.txt
+!docs/rag_generation_guide.docx

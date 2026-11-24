@@ -1,0 +1,21 @@
+# Document parsing
+pymupdf>=1.24          # PDF text, embedded images, table detection, page rendering
+python-docx>=1.1       # DOCX paragraphs, tables, embedded images
+pytesseract>=0.3.10    # OCR wrapper (requires the `tesseract` binary: brew install tesseract)
+pillow>=10.0
+
+# Chunking / embeddings / storage
+tiktoken>=0.7
+openai>=1.40
+chromadb>=0.5
+tenacity>=8.2
+python-dotenv>=1.0
+
+# Web app
+fastapi>=0.110
+uvicorn[standard]>=0.29
+itsdangerous>=2.1      # signed session cookies (GitHub sign-in)
+
+# Dev
+pytest>=8.0
+reportlab>=4.0         # only used by tests to generate sample PDFs

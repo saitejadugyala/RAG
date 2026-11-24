@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1990" viewBox="0 0 1600 1990" role="img" aria-labelledby="title desc">
+  <title id="title">RAG document ingestion pipeline</title>
+  <desc id="desc">The project's seven-step ingestion flow with start-up checks, the skip branch for unchanged files, quarantine paths for bad files at steps 1 to 6, retry paths for service failures at steps 6 and 7, and the files each run writes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6f8fc"/><stop offset="1" stop-color="#eaf0f8"/></linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#142b4a"/><stop offset="1" stop-color="#245b83"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#14304d" flood-opacity=".12"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#55718c"/></marker>
+    <marker id="red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c25a58"/></marker>
+    <marker id="amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b7791f"/></marker>
+    <marker id="green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c8a68"/></marker>
+    <style>
+      text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#18324d}
+      .title{font-size:38px;font-weight:750;fill:#fff}.subtitle{font-size:17px;fill:#dce8f4}
+      .node{fill:#fff;stroke:#d5e0eb;stroke-width:2;filter:url(#shadow)}
+      .stage{font-size:13px;font-weight:700;letter-spacing:1.5px;fill:#39739a}
+      .name{font-size:22px;font-weight:700}.body{font-size:15px;fill:#52677b}
+      .file{font-size:13px;fill:#7a8ea2;font-family:ui-monospace,Menlo,monospace}
+      .small{font-size:14px;fill:#62768a}
+      .panelhead{font-size:19px;font-weight:750}.entry{font-size:14px;fill:#5b4a4a}.entryb{font-size:14px;font-weight:700}
+      .line{fill:none;stroke:#55718c;stroke-width:3;marker-end:url(#arrow)}
+      .redline{fill:none;stroke:#c25a58;stroke-width:2.5;marker-end:url(#red)}
+      .amberline{fill:none;stroke:#b7791f;stroke-width:2.5;marker-end:url(#amber)}
+      .greenline{fill:none;stroke:#3c8a68;stroke-width:2.5;marker-end:url(#green)}
+      .pill{font-size:14px;font-weight:700;fill:#fff}
+      .sidehead{font-size:18px;font-weight:700}.sidebody{font-size:15px;fill:#52677b}
+    </style>
+  </defs>
+
+  <rect width="1600" height="1990" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1600" height="132" fill="url(#head)"/>
+  <text x="60" y="64" class="title">RAG · Document Ingestion</text>
+  <text x="62" y="100" class="subtitle">python ingest.py · every file goes through 7 steps · bad files are quarantined, service errors are retried next run</text>
+
+  <!-- Start-up checks -->
+  <rect x="470" y="160" width="660" height="128" rx="18" class="node"/>
+  <text x="500" y="192" class="stage">START-UP · BEFORE ANY FILE</text>
+  <text x="500" y="222" class="name">Start-up checks</text>
+  <text x="500" y="248" class="body">Create data folders · Tesseract installed? (no → OCR skipped, warning)</text>
+  <text x="500" y="270" class="body">Warn about unknown RAG_* names in .env · load manifest.json</text>
+  <path d="M1130 224 H1236" class="redline"/>
+  <rect x="1240" y="172" width="320" height="104" rx="14" fill="#fff6f4" stroke="#e5b9b3" stroke-width="2"/>
+  <text x="1400" y="204" text-anchor="middle" class="panelhead" style="fill:#9e4645">STOP · exit code 2</text>
+  <text x="1400" y="230" text-anchor="middle" class="entry">OPENAI_API_KEY missing, or the</text>
+  <text x="1400" y="252" text-anchor="middle" class="entry">collection was built by another model</text>
+
+  <!-- Inputs -->
+  <path d="M800 288 V318" class="line"/>
+  <rect x="470" y="326" width="660" height="86" rx="18" class="node"/>
+  <text x="800" y="360" text-anchor="middle" class="stage">INPUTS · docs/ (recursive) or given paths</text>
+  <text x="800" y="392" text-anchor="middle" class="name">PDF · DOCX · TXT</text>
+  <path d="M800 412 V442" class="line"/>
+
+  <!-- ============ STEP 1 (y 450) ============ -->
+  <rect x="470" y="450" width="660" height="120" rx="18" class="node"/>
+  <circle cx="516" cy="510" r="24" fill="#39739a"/><text x="516" y="515" text-anchor="middle" class="pill">1</text>
+  <text x="556" y="482" class="stage">VALIDATE</text><text x="556" y="510" class="name">Check file</text>
+  <text x="556" y="534" class="body">Readable · .pdf/.docx/.txt · 0 &lt; size ≤ 100 MB · content matches type</text>
+  <text x="556" y="556" class="file">step1_check_file.py · SHA-256 fingerprint</text>
+
+  <!-- ============ STEP 2 (y 606) ============ -->
+  <path d="M800 570 V598" class="line"/>
+  <rect x="470" y="606" width="660" height="120" rx="18" class="node"/>
+  <circle cx="516" cy="666" r="24" fill="#39739a"/><text x="516" y="671" text-anchor="middle" class="pill">2</text>
+  <text x="556" y="638" class="stage">EXTRACT · IN READING ORDER</text><text x="556" y="666" class="name">Extract content + headings</text>
+  <text x="556" y="690" class="body">Text · tables → Markdown · OCR of images/scanned pages, kept in place</text>
+  <text x="556" y="712" class="file">step2_extract.py + ocr.py · headings: DOCX styles · PDF font · TXT</text>
+
+  <!-- ============ STEP 3 (y 762) ============ -->
+  <path d="M800 726 V754" class="line"/>
+  <rect x="470" y="762" width="660" height="120" rx="18" class="node"/>
+  <circle cx="516" cy="822" r="24" fill="#39739a"/><text x="516" y="827" text-anchor="middle" class="pill">3</text>
+  <text x="556" y="794" class="stage">CLEAN</text><text x="556" y="822" class="name">Clean document</text>
+  <text x="556" y="846" class="body">Fix characters · drop page numbers, headers/footers, OCR noise, duplicates</text>
+  <text x="556" y="868" class="file">step3_clean.py · rejoin hyphenated and wrapped lines</text>
+
+  <!-- ============ STEP 4 (y 918) ============ -->
+  <path d="M800 882 V910" class="line"/>
+  <rect x="470" y="918" width="660" height="120" rx="18" class="node"/>
+  <circle cx="516" cy="978" r="24" fill="#39739a"/><text x="516" y="983" text-anchor="middle" class="pill">4</text>
+  <text x="556" y="950" class="stage">CHUNK · STRUCTURE DEFAULT</text><text x="556" y="978" class="name">Split into chunks</text>
+  <text x="556" y="1002" class="body">One section per heading · tables alone · 500 tokens, 75 overlap</text>
+  <text x="556" y="1024" class="file">step4_chunk.py · also recursive | sentence | fixed</text>
+
+  <!-- ============ STEP 5 (y 1074) ============ -->
+  <path d="M800 1038 V1066" class="line"/>
+  <rect x="470" y="1074" width="660" height="120" rx="18" class="node"/>
+  <circle cx="516" cy="1134" r="24" fill="#39739a"/><text x="516" y="1139" text-anchor="middle" class="pill">5</text>
+  <text x="556" y="1106" class="stage">QUALITY CHECK</text><text x="556" y="1134" class="name">Check chunks</text>
+  <text x="556" y="1158" class="body">Reject: empty, too long, no words, symbols, duplicate · flag weak ones</text>
+  <text x="556" y="1180" class="file">step5_check_chunks.py · flags saved in quality_flags</text>
+
+  <!-- ============ STEP 6 (y 1230) ============ -->
+  <path d="M800 1194 V1222" class="line"/>
+  <rect x="470" y="1230" width="660" height="120" rx="18" class="node"/>
+  <circle cx="516" cy="1290" r="24" fill="#39739a"/><text x="516" y="1295" text-anchor="middle" class="pill">6</text>
+  <text x="556" y="1262" class="stage">EMBED</text><text x="556" y="1290" class="name">Create vectors</text>
+  <text x="556" y="1314" class="body">text-embedding-3-small · 1536 dims · batches · 5 retries · per-chunk fallback</text>
+  <text x="556" y="1336" class="file">step6_embed.py · every vector checked (size, NaN, zeros)</text>
+
+  <!-- ============ STEP 7 (y 1386) ============ -->
+  <path d="M800 1350 V1378" class="line"/>
+  <rect x="470" y="1386" width="660" height="120" rx="18" class="node"/>
+  <circle cx="516" cy="1446" r="24" fill="#39739a"/><text x="516" y="1451" text-anchor="middle" class="pill">7</text>
+  <text x="556" y="1418" class="stage">STORE</text><text x="556" y="1446" class="name">Save in ChromaDB</text>
+  <text x="556" y="1470" class="body">Cosine · write new chunks first, then delete the file's old chunks</text>
+  <text x="556" y="1492" class="file">step7_store.py · data/chroma</text>
+
+  <!-- Success -->
+  <path d="M800 1506 V1536" class="line"/>
+  <rect x="470" y="1544" width="660" height="92" rx="18" fill="#e5f2ed" stroke="#b7d9ca" stroke-width="2" filter="url(#shadow)"/>
+  <text x="800" y="1578" text-anchor="middle" class="stage" style="fill:#267354">SUCCESS</text>
+  <text x="800" y="1612" text-anchor="middle" class="name">Searchable chunks · python search.py "question"</text>
+
+  <!-- ============ LEFT: QUARANTINE PANEL ============ -->
+  <rect x="34" y="450" width="370" height="900" rx="18" fill="#fff6f4" stroke="#e5b9b3" stroke-width="2"/>
+  <text x="219" y="484" text-anchor="middle" class="panelhead" style="fill:#9e4645">QUARANTINED · bad file</text>
+  <text x="219" y="506" text-anchor="middle" class="small">copy + reason in data/quarantine/</text>
+
+  <path d="M470 534 H408" class="redline"/>
+  <text x="56" y="532" class="entryb" style="fill:#9e4645">1 · unsupported, empty, too big,</text>
+  <text x="56" y="552" class="entry">renamed, corrupt, old .doc</text>
+
+  <path d="M470 690 H408" class="redline"/>
+  <text x="56" y="684" class="entryb" style="fill:#9e4645">2 · cannot open, password PDF,</text>
+  <text x="56" y="704" class="entry">no page could be extracted</text>
+
+  <path d="M470 846 H408" class="redline"/>
+  <text x="56" y="840" class="entryb" style="fill:#9e4645">3 · fewer than 50 useful</text>
+  <text x="56" y="860" class="entry">characters after cleaning</text>
+
+  <path d="M470 1002 H408" class="redline"/>
+  <text x="56" y="996" class="entryb" style="fill:#9e4645">4 · no chunks produced</text>
+  <text x="56" y="1016" class="entry">(chunking error)</text>
+
+  <path d="M470 1158 H408" class="redline"/>
+  <text x="56" y="1152" class="entryb" style="fill:#9e4645">5 · every chunk rejected</text>
+  <text x="56" y="1172" class="entry">by the quality check</text>
+
+  <path d="M470 1314 H408" class="redline"/>
+  <text x="56" y="1290" class="entryb" style="fill:#9e4645">6 · OpenAI refused every chunk</text>
+  <text x="56" y="1310" class="entry">one by one (content problem,</text>
+  <text x="56" y="1330" class="entry">not an outage)</text>
+
+  <!-- ============ RIGHT: SKIP + FAILED ============ -->
+  <path d="M1130 510 H1236" class="greenline"/>
+  <rect x="1240" y="450" width="320" height="140" rx="16" fill="#eef7f2" stroke="#b7d9ca" stroke-width="2"/>
+  <text x="1400" y="482" text-anchor="middle" class="panelhead" style="fill:#267354">SKIPPED</text>
+  <text x="1260" y="510" class="entry" style="fill:#3d5a4c">Same fingerprint + last run success</text>
+  <text x="1260" y="532" class="entry" style="fill:#3d5a4c">+ same embedder + same chunk/OCR</text>
+  <text x="1260" y="554" class="entry" style="fill:#3d5a4c">settings → nothing to redo</text>
+  <text x="1260" y="576" class="small">(--force re-ingests anyway)</text>
+
+  <rect x="1240" y="1230" width="320" height="276" rx="18" fill="#fff8ec" stroke="#ecd3a4" stroke-width="2"/>
+  <text x="1400" y="1264" text-anchor="middle" class="panelhead" style="fill:#8a5a12">FAILED · retried next run</text>
+  <text x="1400" y="1286" text-anchor="middle" class="small">file untouched · not skipped next time</text>
+
+  <path d="M1130 1314 H1236" class="amberline"/>
+  <text x="1260" y="1318" class="entryb" style="fill:#8a5a12">6 · OpenAI still down after</text>
+  <text x="1260" y="1338" class="entry">5 retries, or API key rejected</text>
+
+  <path d="M1130 1470 H1236" class="amberline"/>
+  <text x="1260" y="1440" class="entryb" style="fill:#8a5a12">7 · ChromaDB write failed</text>
+  <text x="1260" y="1460" class="entry">after 3 retries (old version</text>
+  <text x="1260" y="1480" class="entry">of the file stays searchable)</text>
+
+  <rect x="1240" y="1544" width="320" height="92" rx="16" fill="#fff8ec" stroke="#ecd3a4" stroke-width="2"/>
+  <text x="1400" y="1574" text-anchor="middle" class="entryb" style="fill:#8a5a12">Any step · unexpected bug</text>
+  <text x="1400" y="1596" text-anchor="middle" class="entry">→ failed, traceback in ingest.log,</text>
+  <text x="1400" y="1618" text-anchor="middle" class="entry">run continues with the next file</text>
+
+  <rect x="34" y="1380" width="370" height="256" rx="16" class="node"/>
+  <text x="219" y="1414" text-anchor="middle" class="sidehead">Never stops the file</text>
+  <text x="56" y="1446" class="sidebody">One bad page, image or table</text>
+  <text x="56" y="1468" class="sidebody">→ warning, rest is extracted</text>
+  <text x="56" y="1504" class="sidebody">One bad chunk at step 5 or 6</text>
+  <text x="56" y="1526" class="sidebody">→ rejected, rest is stored</text>
+  <text x="56" y="1562" class="sidebody">One bad file</text>
+  <text x="56" y="1584" class="sidebody">→ next file is processed</text>
+  <text x="56" y="1616" class="small">reasons in chunks-&lt;run&gt;.jsonl</text>
+
+  <!-- ============ BOTTOM: RECORDS ============ -->
+  <path d="M800 1636 V1668" class="line"/>
+  <rect x="34" y="1676" width="490" height="170" rx="16" class="node"/>
+  <text x="279" y="1712" text-anchor="middle" class="sidehead">Written after every file</text>
+  <text x="279" y="1744" text-anchor="middle" class="sidebody">data/manifest.json (atomic write): fingerprint,</text>
+  <text x="279" y="1768" text-anchor="middle" class="sidebody">status, settings, chunk count</text>
+  <text x="279" y="1800" text-anchor="middle" class="sidebody">→ a crash mid-run loses nothing</text>
+
+  <rect x="555" y="1676" width="490" height="170" rx="16" class="node"/>
+  <text x="800" y="1712" text-anchor="middle" class="sidehead">Written after every run</text>
+  <text x="800" y="1744" text-anchor="middle" class="sidebody">reports/run-&lt;id&gt;.json · per-file result</text>
+  <text x="800" y="1768" text-anchor="middle" class="sidebody">reports/chunks-&lt;id&gt;.jsonl · flagged/rejected</text>
+  <text x="800" y="1792" text-anchor="middle" class="sidebody">data/ingest.log · full log</text>
+  <text x="800" y="1824" text-anchor="middle" class="small">exit 0 = ok · exit 1 = some file failed</text>
+
+  <rect x="1076" y="1676" width="484" height="170" rx="16" class="node"/>
+  <text x="1318" y="1712" text-anchor="middle" class="sidehead">Maintenance</text>
+  <text x="1318" y="1744" text-anchor="middle" class="sidebody">--remove-deleted: drop vectors of files</text>
+  <text x="1318" y="1768" text-anchor="middle" class="sidebody">deleted from disk</text>
+  <text x="1318" y="1800" text-anchor="middle" class="sidebody">Changed file → new chunks replace old ones</text>
+  <text x="1318" y="1824" text-anchor="middle" class="small">(no duplicates, no gap)</text>
+
+  <!-- Legend -->
+  <rect x="34" y="1880" width="1526" height="72" rx="14" fill="#ffffff" stroke="#d5e0eb" stroke-width="1.5"/>
+  <line x1="66" y1="1916" x2="116" y2="1916" class="line"/><text x="128" y="1921" class="small">normal flow</text>
+  <line x1="290" y1="1916" x2="340" y2="1916" class="greenline"/><text x="352" y="1921" class="small">skipped (unchanged)</text>
+  <line x1="560" y1="1916" x2="610" y2="1916" class="redline"/><text x="622" y="1921" class="small">quarantined (the file is the problem)</text>
+  <line x1="930" y1="1916" x2="980" y2="1916" class="amberline"/><text x="992" y="1921" class="small">failed (a service had a problem → retried next run)</text>
+</svg>
